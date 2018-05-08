@@ -1,0 +1,4 @@
+open Syntax.Syntax;;
+
+type prop =
+  | Axiom of

@@ -1,6 +1,5 @@
 open Syntax.Syntax
 open Mgu.Mgu
-open Tptp
  
 module FormulaSet =
   Set.Make(
@@ -80,8 +79,6 @@ module type KERNEL =
     val format_tex : sequent -> proof -> string
 
     val find_proof : sequent -> proof
-
-    val tptp_to_sequent : prop list -> sequent
       
        
   end
@@ -375,21 +372,9 @@ module Kernel : KERNEL = struct
     "\\documentclass[13pt]{article}\n\\usepackage{prftree}\n\\usepackage[a1paper, margin=0in]{geometry}\n\\usepackage{lscape}\n\\begin{document}\n\\begin{landscape}\n\\begin{displaymath}"^s^"\n\\end{displaymath}\n\\end{landscape}\n\\end{document}";;
 
   let find_proof seq =
-    let rec aux bound = print_int bound; print_string "\n";
+    let rec aux bound =
       let b, proof = search seq bound in
       if b then proof else aux (2 + bound)
     in aux 1;;
-
-
-  let tptp_to_sequent props =
-    let rec aux p acc = match p, acc with
-      | [], NonSelected(left, right) -> NonSelected(FormulaSet.map replace_cst_var left,
-                                                    FormulaSet.map replace_cst_var right)
-      | Axiom(f)::q, NonSelected(left, right) -> aux q (NonSelected(add f left, right))
-      | Hyp(f)::q, NonSelected(left, right) -> aux q (NonSelected(add f left, right))
-      | Conj(f)::q, NonSelected(left, right) -> aux q (NonSelected(left, add f right))
-      | _ -> raise Error
-    in aux props (NonSelected(empty, empty));;
-                                               
          
 end
