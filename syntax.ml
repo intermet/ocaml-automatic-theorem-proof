@@ -40,8 +40,6 @@ module type SYNTAX =
     val concatenate : string list -> string
     val format_term : term -> string
     val format_formula : formula -> string
-
-      
   end
 
   

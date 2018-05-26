@@ -1,6 +1,6 @@
-open Syntax.Syntax
-open Mgu.Mgu
-open Tptp
+open Syntax.Syntax;;
+open Mgu.Mgu;;
+open Tptp;;
  
 module FormulaSet =
   Set.Make(
@@ -249,11 +249,47 @@ module Kernel : KERNEL = struct
        | _ -> false, None;;
 
 
+  let random_pick l =
+    let n = List.length l in
+    let i = Random.int n in
+    let rec aux l i acc = if i == 0 then (List.hd l, acc @ (List.tl l))
+                          else aux (List.tl l) (i-1) ((List.hd l)::acc)
+    in
+    aux l i [];;
+
+  
+  let rec random_select f seq =
+    let rec aux left right = match left, right with
+      | [], [] -> false, None
+      | [], _ -> let x, r = random_pick right in let b, p = f(selR seq x) in
+                                              if b then b, SelR(x, p)
+                                              else aux left r
+
+      | _, [] -> let x, l = random_pick left in let b, p = f(selL seq x) in
+                                              if b then b, SelL(x, p)
+                                              else aux l right
+      | _, _ -> if Random.bool() then
+                  begin
+                    let x, r = random_pick right in let b, p = f(selR seq x) in
+                                                    if b then b, SelR(x, p)
+                                                    else aux left r
+                  end
+                else
+                  begin
+                    let x, l = random_pick left in let b, p = f(selL seq x) in
+                                                   if b then b, SelL(x, p)
+                                                   else aux l right
+                  end
+    in match seq with
+       | NonSelected(left, right) -> aux (elements left) (elements right)
+       | _ -> false, None
+                
+  
   let rec search sequent bound = match sequent, bound with
       | _, _ when bound < 0 -> false, None
       | Invalid, _ -> false, None
       | Done, _ -> true, None
-      | NonSelected(_, _), _ -> select (fun x -> search x (bound - 1)) sequent 
+      | NonSelected(_, _), _ -> random_select (fun x -> search x (bound - 1)) sequent 
       | SelectedL(_, _, Predicate(_)), _ -> let b, p = search (iniL sequent) (bound - 1) in
                                             b, IniL
       | SelectedR(_, _, Predicate(_)), _ -> let b, p = search (iniR sequent) (bound - 1) in
