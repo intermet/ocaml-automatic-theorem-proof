@@ -14,6 +14,7 @@
 \usepackage{synttree}
 \usepackage{multicol}
 \usepackage{hyperref}
+\usepackage{prftree}
 
 \usepackage{listings}
  
@@ -74,6 +75,13 @@ On peut modéliser ceci par la recherche dans un arbre: une branche correspond �
 Pour prouver le séquent $A_i \vdash B_j$, on construit l'arbre qui admet pour racine ce séquent, et l'on s'arrête lorsque le séquent vide est trouvé. Comme l'arbre est potentiellement infini, on impose une profondeur limite. Lorsque la profondeur limite est atteinte, on recommence en l'augmentant.
 
 \section{Implémentation}
+\subsection*{Compilation}
+Le compilation de fait avec la commande:
+\begin{lstlisting}
+git clone https://github.com/intermet/ocaml-automatic-theorem-proof
+cd ocaml-automatic-theorem-proof
+ocamlbuild -use-menhir -tag thread -use-ocamlfind main.native
+\end{lstlisting}
 
 \subsection{Module Syntax}
 La signature du module est la suivante:
@@ -131,7 +139,7 @@ module type SYNTAX =
 \item \verb?SyntaxError? est une exception levée lorsqu'une erreur de syntaxe est rencontrée.
 \item \verb?meta_replace? remplace dans une formule de la forme \verb?Forall(x, formula)? ou \verb?Exists(x, formula)?, la variable \verb?x? par la meta-variable associée.
 \item \verb?add_cst_fc_f? ajoute une constante à la liste des constantes interdites de toutes les meta-variables d'une formule.
-\item \verb?const_replace?
+% \item \verb?const_replace?
 \item \verb?replace_cst_var? remplace les constante par des variables (cf partie du TPTP)
 \end{itemize}
 
@@ -263,15 +271,26 @@ module type MGU =
 
 
 \subsection{Parser TPTP}
-
+Les fichiers \verb?parser.mly? et \verb?lexer.mll? implémente un parser du format TPTP pour les problèmes de la classe FOF. Le générateur de parser utilisé est \verb?Menhir? \footnote{\url{http://gallium.inria.fr/~fpottier/menhir/}}. Les fonctions du fichier \verb?tptp.ml? permettent de convertir un problème fof de TPTP en un objet du type \verb?sequent?.
 
 \subsection{Présentation des preuves en LaTeX}
-Nous avons utilisé le package .
-
-\section{Présentation de quelques résultats}
+Nous avons utilisé le package \verb?prftree? \footnote{\url{https://ctan.org/pkg/prftree}}.
+Par exemple:
+\begin{figure}[H]
+  \hspace*{2cm}
+  \centering
+\prftree[r]{right-sel}
+{\prftree[r]{$\Rightarrow R$}
+{\prftree[r]{left-sel}
+{\prftree[r]{$\bot L$}{}
+{\bot ,[\bot ]\vdash p,(\bot \Rightarrow p)}}
+{\bot \vdash p,(\bot \Rightarrow p)}}
+{\vdash [(\bot \Rightarrow p)],(\bot \Rightarrow p)}}
+{\vdash (\bot \Rightarrow p)}%     
+  \caption{\label{fig:label} Preuve de $\bot \Rightarrow p$}
+\end{figure}
 
 \end{document}
-
 
 
 

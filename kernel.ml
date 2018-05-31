@@ -159,17 +159,17 @@ module Kernel : KERNEL = struct
     | _ -> Invalid, Invalid;;
 
   let impR seq = match seq with
-    | SelectedR(left, right, Implies(a, Implies(b, c))) -> SelectedR(add a left, right, implies b c)
-    | SelectedR(left, right, Implies(a, c)) -> NonSelected(add a left, add c right)
+    | SelectedR(left, right, Implies(a, Implies(b, c))) -> SelectedR(add a left, remove (implies a (implies b c)) right, implies b c)
+    | SelectedR(left, right, Implies(a, c)) -> NonSelected(add a left, remove (implies a c) (add c right))
     | _ -> Invalid;;
 
   let andL seq = match seq with
-    | SelectedL(left, right, And(a, b)) -> NonSelected(add a (add b left), right)
+    | SelectedL(left, right, And(a, b)) -> NonSelected(remove (_and a b) (add a (add b left)), right)
     | _ -> Invalid;;
 
   let andR seq = match seq with
-    | SelectedR(left, right, And(c, d)) -> NonSelected(left, add c right),
-                                          NonSelected(left, add d right)
+    | SelectedR(left, right, And(c, d)) -> NonSelected(left, remove (_and c d) (add c right)),
+                                          NonSelected(left, remove (_and c d) (add d right))
     | _ -> Invalid, Invalid;;
 
   let trueL seq = match seq with
@@ -181,11 +181,11 @@ module Kernel : KERNEL = struct
     | _ -> Invalid;;
 
   let orL seq = match seq with
-    | SelectedL(left, right, Or(a, b)) -> NonSelected(add a left, right), NonSelected(add b left, right)
+    | SelectedL(left, right, Or(a, b)) -> NonSelected(remove (_or a b) (add a left), right), NonSelected(remove (_or a b) (add b left), right)
     | _ -> Invalid, Invalid;;
 
   let orR seq = match seq with
-    | SelectedR(left, right, Or(c, d)) -> NonSelected(left, add c (add d right))
+    | SelectedR(left, right, Or(c, d)) -> NonSelected(left, remove (_or c d) (add c (add d right)))
     | _ -> Invalid;;
 
   let falseL seq = match seq with
@@ -411,9 +411,9 @@ module Kernel : KERNEL = struct
     "\\documentclass[13pt]{article}\n\\usepackage{prftree}\n\\usepackage[a1paper, margin=0in]{geometry}\n\\usepackage{lscape}\n\\begin{document}\n\\begin{landscape}\n\\begin{displaymath}"^s^"\n\\end{displaymath}\n\\end{landscape}\n\\end{document}";;
 
   let find_proof seq =
-    let rec aux bound = print_int bound; print_string "\n";
+    let rec aux bound = 
       let b, proof = search seq bound in
-      if b then proof else aux (2 + bound)
+      if b then begin print_string "proved \n"; proof end else aux (2 + bound)
     in aux 1;;
 
 
